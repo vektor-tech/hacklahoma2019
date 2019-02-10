@@ -1,47 +1,48 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
+import './utils.dart';
 
-List<CameraDescription> cameras;
+class TextDetectDecoration extends Decoration {
+  final Size _originalImageSize;
+  final List<VisionFace> _texts;
+  TextDetectDecoration(List<VisionFace> texts, Size originalImageSize)
+      : _texts = texts,
+        _originalImageSize = originalImageSize;
 
-Future<void> main() async {
-  cameras = await availableCameras();
-  runApp(CameraApp());
+  @override
+  BoxPainter createBoxPainter([VoidCallback onChanged]) {
+    return new _TextDetectPainter(_texts, _originalImageSize);
+  }
 }
 
-class CameraApp extends StatefulWidget {
-  @override
-  _CameraAppState createState() => _CameraAppState();
-}
-
-class _CameraAppState extends State<CameraApp> {
-  CameraController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = CameraController(cameras[0], ResolutionPreset.medium);
-    controller.initialize().then((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {});
-    });
-  }
+class _TextDetectPainter extends BoxPainter {
+  final List<VisionFace> _faceLabels;
+  final Size _originalImageSize;
+  _TextDetectPainter(faceLabels, originalImageSize)
+      : _faceLabels = faceLabels,
+        _originalImageSize = originalImageSize;
 
   @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
-  }
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    final paint = new Paint()
+      ..strokeWidth = 2.0
+      ..color = Colors.red
+      ..style = PaintingStyle.stroke;
 
-  @override
-  Widget build(BuildContext context) {
-    if (!controller.value.isInitialized) {
-      return Container();
+    final _heightRatio = _originalImageSize.height / configuration.size.height;
+    final _widthRatio = _originalImageSize.width / configuration.size.width;
+    for (var faceLabel in _faceLabels) {
+      final _rect = Rect.fromLTRB(
+          offset.dx + faceLabel.rect.left / _widthRatio,
+          offset.dy + faceLabel.rect.top / _heightRatio,
+          offset.dx + faceLabel.rect.right / _widthRatio,
+          offset.dy + faceLabel.rect.bottom / _heightRatio);
+
+      canvas.drawRect(_rect, paint);
     }
-    return AspectRatio(
-        aspectRatio: controller.value.aspectRatio,
-        child: CameraPreview(controller));
   }
 }
+
+// Container(
+//                         foregroundDecoration:
+//                             TextDetectDecoration(_face, snapshot.data),
+//                         child: Image.file(_file, fit: BoxFit.fitWidth));

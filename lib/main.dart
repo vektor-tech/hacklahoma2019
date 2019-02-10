@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 import './utils.dart';
 
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: CameraApp(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -31,10 +33,13 @@ class CameraApp extends StatefulWidget {
 
 class _CameraAppState extends State<CameraApp> {
   CameraController controller;
+  FlutterTts flutterTts = new FlutterTts();
+  var text = "";
 
   @override
   void initState() {
     super.initState();
+    initializeSpeech();
     controller = CameraController(cameras[0], ResolutionPreset.medium);
     controller.initialize().then((_) {
       if (!mounted) {
@@ -50,7 +55,19 @@ class _CameraAppState extends State<CameraApp> {
     super.dispose();
   }
 
+  void initializeSpeech() async {
+    await flutterTts.setLanguage("en-US");
+    await flutterTts.setSpeechRate(1.0);
+    await flutterTts.setVolume(1.0);
+    await flutterTts.setPitch(1.0);
+  }
+
   String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
+
+  Future<void> textToSpeech(String text) async {
+    var result = await flutterTts.speak(text);
+    //if (result == 1) setState(() => ttsState = TtsState.playing);
+  }
 
   void takePic() async {
     while (true) {
@@ -65,13 +82,25 @@ class _CameraAppState extends State<CameraApp> {
       String base64Image = base64Encode(imageBytes);
 
       var a = await fetchPost(base64Image);
-      sleep(const Duration(seconds: 2));
+      text = "";
+      for (var i = 0; i < a.ent.length; i++) {
+        print(a.ent[i].name);
+        print(a.ent[i].score);
+        if (a.ent[i].score > 0.7) {
+          text += a.ent[i].name + ", ";
+        }
+      }
+      print(text);
+      setState(() {});
+      await textToSpeech(text);
+      sleep(const Duration(seconds: 3));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.lightBlueAccent,
       appBar: AppBar(
         title: Text('Vision'),
       ),
@@ -79,9 +108,11 @@ class _CameraAppState extends State<CameraApp> {
           aspectRatio: controller.value.aspectRatio,
           child: CameraPreview(controller)),
       floatingActionButton: RaisedButton(
+        color: Colors.blueAccent,
         child: Text('+'),
         onPressed: takePic,
       ),
+      bottomSheet: Text(text),
     );
   }
 }
