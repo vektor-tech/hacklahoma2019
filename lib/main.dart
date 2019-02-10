@@ -101,9 +101,9 @@ class _CameraAppState extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightGreenAccent,
+      backgroundColor: const Color.fromRGBO(169, 217, 188, 1.0),
       appBar: AppBar(
-        backgroundColor: Colors.lightGreenAccent,
+        backgroundColor: const Color.fromRGBO(169, 217, 188, 1.0),
         title: Text('Vision'),
       ),
       body: Column(
@@ -119,10 +119,10 @@ class _CameraAppState extends State<CameraApp> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: takePic,
-        child: Icon(Icons.camera),
-        backgroundColor: Colors.limeAccent,
-      ),
+          onPressed: takePic,
+          child:
+              Icon(Icons.camera, color: const Color.fromRGBO(0, 138, 136, 1.0)),
+          backgroundColor: const Color.fromRGBO(255, 213, 138, 1.0)),
     );
   }
 }
