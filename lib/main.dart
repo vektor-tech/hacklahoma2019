@@ -104,7 +104,11 @@ class _CameraAppState extends State<CameraApp> {
       backgroundColor: const Color.fromRGBO(169, 217, 188, 1.0),
       appBar: AppBar(
         backgroundColor: const Color.fromRGBO(169, 217, 188, 1.0),
-        title: Text('Vision'),
+        title: Text('Seeker',
+            style: TextStyle(
+                color: const Color.fromRGBO(0, 138, 136, 1.0),
+                fontSize: 30.0,
+                fontFamily: 'Raleway')),
       ),
       body: Column(
         children: <Widget>[
