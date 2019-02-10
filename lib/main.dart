@@ -66,11 +66,11 @@ class _CameraAppState extends State<CameraApp> {
   String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
 
   Future<void> textToSpeech(String text) async {
+    await flutterTts.stop();
     var result = await flutterTts.speak(text);
-    //if (result == 1) setState(() => ttsState = TtsState.playing);
   }
 
-  void takePic() async {
+  void takePic(int option) async {
     while (true) {
       final Directory extDir = await getApplicationDocumentsDirectory();
       final String dirPath = '${extDir.path}/Pictures/flutter_test';
@@ -82,15 +82,35 @@ class _CameraAppState extends State<CameraApp> {
       List<int> imageBytes = image.readAsBytesSync();
       String base64Image = base64Encode(imageBytes);
 
-      var a = await fetchPost(base64Image);
+      var a = await fetchPost(base64Image, option);
       text = "";
-      for (var i = 0; i < a.ent.length; i++) {
-        print(a.ent[i].name);
-        print(a.ent[i].score);
-        if (a.ent[i].score > 0.7) {
-          text += a.ent[i].name + ", ";
+
+      if (option == 1) {
+        for (var i = 0; i < a.ent.length; i++) {
+          print(a.ent[i].name);
+          for (var j = 0; j < 8; j++) {
+            print(a.ent[i].coordinates[j]);
+          }
+          if (a.ent[i].score > 0.7) {
+            text += a.ent[i].name + ", ";
+          }
+        }
+      } else if (option == 0) {
+        for (var i = 0; i < a.ent.length; i++) {
+          text += a.ent[i].description;
+        }
+      } else {
+        double max = 9;
+        var index;
+        for (var i = 0; i < a.ent.length; i++) {
+          if (a.ent[i].score > max) {
+            max = a.ent[i].score;
+            index = i;
+          }
+          text += a.ent[index].color;
         }
       }
+
       print(text);
       setState(() {});
       await textToSpeech(text);
@@ -101,6 +121,7 @@ class _CameraAppState extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding: true,
       backgroundColor: const Color.fromRGBO(169, 217, 188, 1.0),
       appBar: AppBar(
         backgroundColor: const Color.fromRGBO(169, 217, 188, 1.0),
@@ -115,18 +136,61 @@ class _CameraAppState extends State<CameraApp> {
           AspectRatio(
               aspectRatio: controller.value.aspectRatio,
               child: CameraPreview(controller)),
-          Container(
-            margin: EdgeInsets.all(3.0),
-            child: Text(text,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Container(
+              margin: EdgeInsets.all(5.0),
+              child: SingleChildScrollView(
+                child: Text(text,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-          onPressed: takePic,
-          child:
-              Icon(Icons.camera, color: const Color.fromRGBO(0, 138, 136, 1.0)),
-          backgroundColor: const Color.fromRGBO(255, 213, 138, 1.0)),
+      floatingActionButton: Container(
+        margin: EdgeInsets.fromLTRB(0, 0, 0, 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            FloatingActionButton(
+                onPressed: () async {
+                  await flutterTts.stop();
+                  await flutterTts.speak("Detecting Texts");
+                  takePic(0);
+                },
+                child: Icon(Icons.text_format,
+                    color: const Color.fromRGBO(0, 138, 136, 1.0)),
+                backgroundColor: const Color.fromRGBO(255, 213, 138, 1.0)),
+            SizedBox(
+              width: 20.0,
+            ),
+            FloatingActionButton(
+                onPressed: () async {
+                  await flutterTts.stop();
+                  await flutterTts.speak("Detecting Objects");
+                  takePic(1);
+                },
+                child: Icon(Icons.camera,
+                    color: const Color.fromRGBO(0, 138, 136, 1.0)),
+                backgroundColor: const Color.fromRGBO(255, 213, 138, 1.0)),
+            SizedBox(
+              width: 20.0,
+            ),
+            FloatingActionButton(
+                onPressed: () async {
+                  await flutterTts.stop();
+                  await flutterTts.speak("Detecting Color");
+                  //  takePic(2);
+                },
+                child: Icon(Icons.colorize,
+                    color: const Color.fromRGBO(0, 138, 136, 1.0)),
+                backgroundColor: const Color.fromRGBO(255, 213, 138, 1.0)),
+          ],
+        ),
+      ),
     );
   }
 }
