@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: CameraApp(),
       debugShowCheckedModeBanner: false,
+      color: Colors.orangeAccent,
     );
   }
 }
@@ -100,19 +101,28 @@ class _CameraAppState extends State<CameraApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlueAccent,
+      backgroundColor: Colors.lightGreenAccent,
       appBar: AppBar(
+        backgroundColor: Colors.lightGreenAccent,
         title: Text('Vision'),
       ),
-      body: AspectRatio(
-          aspectRatio: controller.value.aspectRatio,
-          child: CameraPreview(controller)),
-      floatingActionButton: RaisedButton(
-        color: Colors.blueAccent,
-        child: Text('+'),
-        onPressed: takePic,
+      body: Column(
+        children: <Widget>[
+          AspectRatio(
+              aspectRatio: controller.value.aspectRatio,
+              child: CameraPreview(controller)),
+          Container(
+            margin: EdgeInsets.all(3.0),
+            child: Text(text,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
-      bottomSheet: Text(text),
+      floatingActionButton: FloatingActionButton(
+        onPressed: takePic,
+        child: Icon(Icons.camera),
+        backgroundColor: Colors.limeAccent,
+      ),
     );
   }
 }
